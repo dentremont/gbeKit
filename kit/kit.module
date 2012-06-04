@@ -1,0 +1,124 @@
+<?php
+/**
+ * Implementation of hook_node_view_alter(&$build)
+ */
+function kit_menu() {
+	$items['kit/new'] = array(
+	  'title' => t('Request a new kit'),
+	  'page callback' => 'kit_new_page',
+	  'access arguments' => array('access content'), 
+	  'type' => MENU_CALLBACK,
+	);
+	$items['kit/detail/%'] = array(
+	  'title' => t('Kit Details'),
+	  'page callback' => 'kit_page',
+	  'access arguments' => array('access content'), 
+	  'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+function kit_new_page() {
+	global $user;
+	$user = user_load($user->uid);
+		
+	$rows = array(
+		array(t('First Name'), $user->field_first_name['und'][0]['safe_value']),
+		array(t('Last Name'), $user->field_last_name['und'][0]['safe_value']),
+		array(t('Address'), $user->field_address['und'][0]['safe_value']),
+		array(t('City / State / Zip'), $user->field_city_state_zip['und'][0]['safe_value']),
+		array(t('Phone'), $user->field_phone['und'][0]['safe_value']),
+	);
+	$output = theme('table', array('header' => array('Shipping Information',''), 'rows' => $rows));
+	
+	$output .= drupal_render(drupal_get_form('kit_newform'));	
+		
+	return $output;
+}
+
+function kit_page() {
+	return "Heelo";
+}
+
+function kit_newform($form, &$form_state) {
+	$form['description'] = array(
+		'#type' => 'textarea',
+		'#title' => t('Description of metals'),
+		'#required' => true,
+		'#description' => t("Enter a description of the metals you'll be sending us.")
+	);
+	$form['kit_type'] = array(
+		'#type' => 'checkboxes',
+		'#title' => t('Types of Metal'),
+		'#required' => true,
+		'#options' => drupal_map_assoc( array(t('gold'), t('platinum'), t('silver'), t('other')) ),
+	);
+	$form['submit'] = array(
+		'#type' => 'submit', 
+		'#value' => t('Save'),
+		'#submit' => array('kit_new_submit'),
+	);
+	return $form;
+}
+
+function kit_new_validate($form, &$form_state) {
+	drupal_set_message('Form validate.', 'status');
+}
+
+function kit_new_submit($form, &$form_state) {	
+	global $user;
+	$user = user_load($user->uid);
+	
+	// Create a new kit object
+	$kit = (object) NULL;
+	$kit->type = 'kit';
+	$kit->uid = $user->uid;
+	$kit->created = strtotime("now");
+	$kit->changed = strtotime("now");
+	$kit->status = 1;
+	$kit->promote = 0;
+	$kit->moderate = 0;
+	$kit->sticky = 0;
+	$kit->language = 'und';
+	$kit->title = 'Sample';
+	
+	$kit->field_user['und'][0]['target_id'] = $user->uid;
+	$kit->field_status['und'][0]['value'] = 'Requested';
+	
+	$metals = array();
+	foreach($form_state['values']['kit_type'] as $key => $value) {
+		if($value !== 0) {
+			$metals[] = array('value' => $value);
+		}
+	}
+	
+	$kit->field_types_of_metal['und'] = $metals;
+	
+	$kit->body['und'][0]['value'] = $form_state['values']['description'];
+	
+	node_object_prepare($kit);
+	
+	node_save($kit);
+
+	drupal_set_message('Kit requested!', 'status');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

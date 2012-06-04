@@ -1,0 +1,4 @@
+name = "Gold Kit"
+description = "Controls the processing of gold kits."
+core = 7.x
+package = Custom
