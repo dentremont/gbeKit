@@ -9,12 +9,13 @@ function kit_menu() {
 	  'access arguments' => array('access content'), 
 	  'type' => MENU_CALLBACK,
 	);
-	$items['kit/detail/%'] = array(
-	  'title' => t('Kit Details'),
-	  'page callback' => 'kit_page',
-	  'access arguments' => array('access content'), 
-	  'type' => MENU_CALLBACK,
-	);
+//	$items['kit/detail/%'] = array(
+//	  'title' => t('Kit Details'),
+//	  'page callback' => 'kit_view',
+//	  'page arguments' => array(1),
+//	  'access arguments' => array('access content'), 
+//	  'type' => MENU_CALLBACK,
+//	);
 	return $items;
 }
 
@@ -36,8 +37,8 @@ function kit_new_page() {
 	return $output;
 }
 
-function kit_page() {
-	return "Heelo";
+function kit_view() {
+
 }
 
 function kit_newform($form, &$form_state) {
@@ -57,6 +58,28 @@ function kit_newform($form, &$form_state) {
 		'#type' => 'submit', 
 		'#value' => t('Save'),
 		'#submit' => array('kit_new_submit'),
+	);
+	return $form;
+}
+
+function kit_user_form($form, &$form_state) {
+	
+	$form['description'] = array(
+		'#type' => 'textarea',
+		'#title' => t('Description of metals'),
+		'#required' => true,
+		'#description' => t("Enter a description of the metals you'll be sending us.")
+	);
+	$form['kit_type'] = array(
+		'#type' => 'checkboxes',
+		'#title' => t('Types of Metal'),
+		'#required' => true,
+		'#options' => drupal_map_assoc( array(t('gold'), t('platinum'), t('silver'), t('other')) ),
+	);
+	$form['submit'] = array(
+		'#type' => 'submit', 
+		'#value' => t('Save'),
+		'#submit' => array('kit_user_reg_submit'),
 	);
 	return $form;
 }
@@ -136,18 +159,20 @@ function kit_form_alter(&$form, &$form_state, $form_id) {
   * Custom submit handler
   */
 function kit_user_reg_submit($form, &$form_state) {
-	watchdog('kit', 'User is registering with kit.', $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL);
+	
 }
 
+function kit_block_info() {
+	$blocks['kit_user_register'] = array(
+		'info'	=>	t('Kit: User Registration')
+	);
+	
+	return $blocks;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+function kit_block_view($delta = '') {
+	if($delta == 'kit_user_register') {
+		$block['content'] = drupal_render(drupal_get_form('kit_user_form'));
+	}
+	return $block;
+}
